@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: dev-ops-demo/dev-ops-test
 kind: Ingress
 metadata:
   name: spring-boot-route
