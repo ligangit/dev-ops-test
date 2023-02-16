@@ -1,4 +1,4 @@
-apiVersion: dev-ops-demo/dev-ops-test
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: spring-boot-route
