@@ -11,5 +11,5 @@ spec:
               serviceName: spring-boot-service
               servicePort: 8080
             path: /devops
-            pathType: Server
+            pathType: Prefix
 
