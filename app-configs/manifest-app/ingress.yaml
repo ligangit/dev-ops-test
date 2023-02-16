@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: spring-boot-route
+  name: ingress-wildcard-host
 spec:
   rules:
     - host: www.${HOST}
@@ -10,5 +10,5 @@ spec:
           - backend:
               serviceName: spring-boot-service
               servicePort: 8080
-            path: /
+            path: /devops
 
