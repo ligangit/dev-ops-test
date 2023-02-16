@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-boot-service
+  labels:
+    test: test
+    labele2: label
+spec:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+  selector:
+    run: spring-boot-sample
+  sessionAffinity: None
+  type: ClusterIP
+
