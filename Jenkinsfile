@@ -5,13 +5,14 @@ def createVersion() {
 
 
 pipeline {
-  agent any
+  agent none
     environment {
         //定义备份的包
         BUILD_ID = createVersion()
     }
     stages {
         stage('Clone Code') {
+            agent any
             steps {
                 echo "1.Git Clone Code"
                 git url: "https://github.com/ligangit/dev-ops-test.git"
@@ -30,6 +31,7 @@ pipeline {
             }
         }
         stage('Image Build') {
+            agent any
             steps {
             echo "3.Image Build Stage"
             sh 'docker build -f Dockerfile --build-arg jar_name=target/dev-ops-test-0.0.1-SNAPSHOT.jar -t dev-ops-test:${BUILD_ID} . '
@@ -37,6 +39,7 @@ pipeline {
             }
         }
         stage('Push') {
+            agent any
             steps {
             echo "4.Push Docker Image Stage"
             sh "docker login --username=ligang@1117199394288256 registry.cn-shanghai.aliyuncs.com -p Hjh123456789"
