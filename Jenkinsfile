@@ -22,7 +22,7 @@ pipeline {
             agent {
                 docker {
                     image 'maven:latest'
-                    args '-v /root/.m2:/root/.m2'
+                    args '-v /var/jenkins_home/repository:/root/.m2'
                 }
             }
             steps {
