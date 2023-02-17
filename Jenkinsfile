@@ -1,54 +1,56 @@
-pipeline {
-  agent any  //agent 必须放在pipeline的顶层定义或stage中可选定义，放在stage中就是不同阶段使用
-  stages {  //Pipeline 的主体部分，声明不同阶段，比如 构建，部署，测试
-    stage('Build') {  //编译阶段
-      steps {
-        sh 'pwd'
-        git(url: 'https://xxx.xxx.xxx.xxx/xxxxxxxx/xxxxxxx', poll: true, credentialsId: '0000000-0000-0000-0000-000000000000') //拉取代码
-        echo '使用你的编译工具进行编译'  //编译
-        archiveArtifacts(artifacts: 'testProject', onlyIfSuccessful: true)  //编译制品归档
-      }
-    }
-
-    stage('Docker Build')  //编译docker 镜像文件
-            agent any
-            steps {
-                unstash 'test'
-                sh "docker login"
-                sh "docker build"
-                sh "docker push "
-                sh "docker rmi"
-            }
-
-        }
-    stage('Deploy') { //部署阶段
-        agent {  //在stage中特别声明agent，该stage就在声明的agent中去执行
-            docker {
-                image 'image_name'
-            }
-        }
-        steps { //执行步骤
-            sh "mkdir -p ~/.kube"
-            echo '添加部署步骤完成部署 '
-            echo '启动服务'
-        }
-
-    stage('Test') { //测试阶段
-      steps {
-        echo '测试阶段'
-        git(url: 'https://xxx.xxx.xxx.xxx/xxxxxxxx/xxxxxxx', poll: true, credentialsId: '0000000-0000-0000-0000-000000000000')
-        echo '执行测试用例'
-      }
-    }
-
-  }
-  environment {  //环境变量，在satge中使用${variable name}来调用
-    image_name = 'testProject'
-    project_path = '../testProject'
-    K8S_CONFIG = credentials('jenkins-k8s-config')
-    GIT_TAG = sh(returnStdout: true,script: 'git describe --tags --always').trim()
-  }
+def createVersion() {
+    // 定义一个版本号作为当次构建的版本，输出结果 20191210175842
+    return new Date().format('yyyyMMddHHmmss')
 }
 
 
-
+pipeline {
+  agent any
+    environment {
+        //定义备份的包
+        BUILD_ID = createVersion()
+    }
+    stages {
+        stage('Clone Code') {
+            agent {
+                label 'master'
+            }
+            steps {
+                echo "1.Git Clone Code"
+                git url: "https://github.com/ligangit/dev-ops-test.git"
+            }
+        }
+        stage('Maven Build') {
+            agent {
+                docker {
+                    image 'maven:latest'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
+            steps {
+                echo "2.Maven Build Stage"
+                sh 'mvn -B clean package -Dmaven.test.skip=true'
+            }
+        }
+        stage('Image Build') {
+            agent {
+                label 'master'
+            }
+            steps {
+            echo "3.Image Build Stage"
+            sh 'docker build -f Dockerfile --build-arg jar_name=target/dev-ops-test-0.0.1-SNAPSHOT.jar -t dev-ops-test:${BUILD_ID} . '
+            sh 'docker tag  dev-ops-test:${BUILD_ID}  registry.cn-shanghai.aliyuncs.com/dev-ops-demo/dev-ops-v1:${BUILD_ID}'
+            }
+        }
+        stage('Push') {
+            agent {
+                label 'master'
+            }
+            steps {
+            echo "4.Push Docker Image Stage"
+            sh "docker login --username=ligang@1117199394288256 registry.cn-shanghai.aliyuncs.com -p Hjh123456789"
+            sh "docker push registry.cn-shanghai.aliyuncs.com/dev-ops-demo/dev-ops-v1:${BUILD_ID}"
+            }
+        }
+    }
+}
