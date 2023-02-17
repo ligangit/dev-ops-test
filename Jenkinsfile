@@ -18,6 +18,12 @@ pipeline {
             }
         }
         stage('Maven Build') {
+            agent {
+                docker {
+                    image 'maven:latest'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
             steps {
                 echo "2.Maven Build Stage"
                 sh 'mvn -B clean package -Dmaven.test.skip=true'
