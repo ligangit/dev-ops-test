@@ -12,30 +12,18 @@ pipeline {
     }
     stages {
         stage('Clone Code') {
-            agent {
-                label 'master'
-            }
             steps {
                 echo "1.Git Clone Code"
                 git url: "https://github.com/ligangit/dev-ops-test.git"
             }
         }
         stage('Maven Build') {
-            agent {
-                docker {
-                    image 'maven:latest'
-                    args '-v /root/.m2:/root/.m2'
-                }
-            }
             steps {
                 echo "2.Maven Build Stage"
                 sh 'mvn -B clean package -Dmaven.test.skip=true'
             }
         }
         stage('Image Build') {
-            agent {
-                label 'master'
-            }
             steps {
             echo "3.Image Build Stage"
             sh 'docker build -f Dockerfile --build-arg jar_name=target/dev-ops-test-0.0.1-SNAPSHOT.jar -t dev-ops-test:${BUILD_ID} . '
@@ -43,9 +31,6 @@ pipeline {
             }
         }
         stage('Push') {
-            agent {
-                label 'master'
-            }
             steps {
             echo "4.Push Docker Image Stage"
             sh "docker login --username=ligang@1117199394288256 registry.cn-shanghai.aliyuncs.com -p Hjh123456789"
